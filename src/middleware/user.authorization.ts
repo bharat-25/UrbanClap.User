@@ -12,25 +12,27 @@ declare global {
   }
 }
 
+
+const AccessJWTSECRET:any = process.env.Access_JWT_SECRET;
+const RefreshJWTSECRET:any = process.env.Refresh_JWT_SECRET;
+
 const authenticateToken = async (req: Request, res: Response, next: any) => {
   let token: any = req.headers["authorization"];
   token = token.slice(7, token.length);
-
-  // console.log(token);
 
   if (token == null) {
     res.status(401).send("unauthorized user to access.");
   }
   try {
-    // console.log(token);
-
-    const decoded = jwt.verify(token, "MySecretKey");
-    req.user = decoded;
-    console.log(decoded);
-    next();
+    const decoded:any = jwt.verify(token, AccessJWTSECRET);
+    if(req.user = decoded.userId){
+      console.log(decoded);
+      next();
+    }
   } catch (err) {
     res.status(401).json({ error: "Unauthorized" });
   }
 };
 
 export { authenticateToken };
+

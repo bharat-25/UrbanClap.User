@@ -9,43 +9,38 @@ import {mobileLoginSchema,otpVerificationValidatrion,loginValidation,} from "../
 import client from "../../utils/redis";
 import { Session } from "../../models/sessions.schema";
 import { session } from "./user.session.controller";
-import { verify_refresh_token, verify_token } from "../../middleware/user.verifytoken";
+import { verify_refresh_token, verify_token } from "../../utils/decodeToken";
 import { SignAccessToken, SignRefreshToken } from "../../utils/generateJWT";
+import {RESPONSE_MESSAGES,RESPONSE_CODES,} from '../../responses/services.responses';
+import { v4 as uuidv4 } from 'uuid';
+import { tokenModel } from "../../models/token.Model";
 
 //<----------------------------------------- SIGNUP ------------------------------------------------->
 
 export const registerControl = async (req: Request, res: Response) => {
   try {
     if (req.body == undefined) {
-      res.status(400).json({ Message: "Bad Request" });
-    } else
-     {
-
+      res.status(RESPONSE_CODES.BADREQUEST).json({ Message: RESPONSE_MESSAGES.BAD_REQUEST });
+    } else {
       let result = await isUserExist(req);
       if (!result) {
-
         const userData = req.body;
 
         const newUser = await registerUsers(userData);
 
-        res.status(201).json({ message: "User registered successfully", user: newUser });
-
+        res.status(RESPONSE_CODES.CREATED).json({ message: RESPONSE_MESSAGES.CREADTED, user: newUser });
       } else {
-
-        res.status(409).json({ message: "user Already Exist!, Pls enter the valid Email Id"});
+        res.status(RESPONSE_CODES.CONFLICT).json({ message: RESPONSE_MESSAGES.ALREADY_EXIST });
       }
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "An error occurred" });
+    res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 const isUserExist = async (req: Request) => {
-  // let data: any;
   try {
     // data=await Register.findOne({mobileno:req.body.mobileno});
     const data = await UserData.findOne({ email: req.body.email });
-
     return data;
   } catch {
     console.error("error occured", error);
@@ -57,33 +52,30 @@ const isUserExist = async (req: Request) => {
 export const Login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    // const { error } = mobileLoginSchema.validate(req.body);
     const { error } = loginValidation.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ message: "Invalid data" });
+      return res.status(RESPONSE_CODES.BADREQUEST).json({ message: "Invalid data" });
     }
-
-    const user: any = await UserData.findOne({ email: req.body.email });
-    console.log(user?.password);
-    console.log(password);
+    const user: any = await UserData.findOne({ email: req.body.email});
+    console.log(user)
 
     if (!user) {
-      return res.status(401).json({ error: "User not found" });
+      return res.status(RESPONSE_CODES.NOTFOUND).json({ error: RESPONSE_MESSAGES.NOT_FOUND });
     }
 
     const pass = await bcrypt.compare(password.toString(), user?.password);
     console.log(pass);
 
     if (!pass) {
-      return res.status(401).json({ error: "Wrong Password" });
+      return res.status(RESPONSE_CODES.UNAUTHORIZED).json({ error: "Wrong Password" });
     }
 
     const isSession: any = await Session.findOne({ user_id: user._id });
 
     if (isSession) {
       if (isSession.status) {
-        return res.status(400).json({ message: "User is already logged in" });
+        return res.status(RESPONSE_CODES.BADREQUEST).json({ message: "User is already logged in" });
       }
     }
     const otp = await login(email);
@@ -94,10 +86,10 @@ export const Login = async (req: Request, res: Response) => {
 
     const result = sendEmail(email, otp);
 
-    const sess = await session.maintainSession(req, res, user);
+    const sess = await session.maintainSession(user);
 
     res.status(200).json({ message: "OTP sent successfully and OTP valid only for 5 min" });
-
+    
     // -----------CODE FOR SEND OTP TO MOBILE NO-------------
 
     // const otp = await login(mobileno);
@@ -110,75 +102,52 @@ export const Login = async (req: Request, res: Response) => {
   } 
   catch (error) {
     console.error(error);
-    res.status(500).json({ message: "An error occurred" });
+    res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR});
   }
 };
 
-//<----------------------------- VERIFY OTP with MOBILE NO------------------------------------------------------>
-
-// export const verifyOTPController = async (req: Request, res: Response) => {
-
-//     try {
-//       const { error } = otpVerificationSchema.validate(req.body);
-
-//       const userId=req.body.email;
-
-//       if (error) {
-//         return res.status(400).json({ message: 'Invalid data', error: error.details });
-//       }
-
-//       const { email,mobileno, otp } = req.body;
-
-//       const isValidOTP = await verifyOTP(otp, mobileno,email);
-
-//       if (!isValidOTP) {
-//         return res.status(401).json({ message: 'Invalid OTP' });
-//       }
-//       // await setUserLoginStatus(userId, true);
-//       const jwtToken = generateJWTToken(userId);
-
-// await redisClient.set(`session:${}`, 'true');
-
-//       res.status(200).json({ message: 'Successfully login' ,token: jwtToken});
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).json({ message: 'An error occurred' });
-//     }
-//   };
 
 //<------------------------------------------ VERIFY OTP WITH EMAIL-----------------------------------------------------
-
+  
 export const verifyOTPController = async (req: Request, res: Response) => {
-  try {
+    try {
     const { error } = otpVerificationValidatrion.validate(req.body);
 
     const userId = req.body.email;
-
+    
     if (error) {
-      return res.status(400).json({ message: "Invalid data", error: error.details });
+      return res.status(RESPONSE_CODES.BADREQUEST).json({ message: "Invalid data", error: error.details });
     }
-    const isadmin: any = await UserData.findOne(
-      { email: userId },
-      { isAdmin: 1 }
-    );
-    // console.log('1111111111111111111111111111111111111',isadmin?.isAdmin)
-    // console.log("111111111111111111111111111111111111", isadmin);
-
+    const user_data: any = await UserData.findOne({ email: userId });
+    console.log(user_data)
+    
     const { email, otp } = req.body;
-
+    
     const isValidOTP = await verifyOTP(otp, email);
-
+    
     if (!isValidOTP) {
-      return res.status(401).json({ message: "Invalid OTP" });
+      return res.status(RESPONSE_CODES.UNAUTHORIZED).json({ message: RESPONSE_MESSAGES.UNAUTHORIZED });
+    }
+    // const sess = await session.maintainSession(userId);
+    client.set(`status:${userId}`, 'true');
+
+    const isSession: any = await Session.findOne({ user_id: user_data._id });
+
+    if (isSession) {
+      if (isSession.status==false) {
+        const sess = await session.maintainSession(user_data);
+      }
     }
 
-    const AccessToken = SignAccessToken(userId, isadmin);
-    const RefreshToken = SignRefreshToken(userId, isadmin);
+    const AccessToken = SignAccessToken(user_data._id, user_data.isAdmin);
+    const RefreshToken = SignRefreshToken(user_data._id, user_data.isAdmin);
+    
+    await tokenModel.create({userId:user_data._id,accessTokenId:AccessToken.accessTokenId,refreshTokenId:RefreshToken.refreshTokenId})
 
-    res.status(200).json({ message: "Successfully login", Access_token: AccessToken ,Refresh_token:RefreshToken});
+    res.status(RESPONSE_CODES.SUCCESS).json({ message: "Successfully login", Access_token: AccessToken ,Refresh_token:RefreshToken});
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "An error occurred" });
+    res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: "An error occurred" });
   }
 };
 
@@ -186,20 +155,27 @@ export const verifyOTPController = async (req: Request, res: Response) => {
 
 export const logoutcontrol = async (req: Request, res: Response) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    const userToken = await verify_token(token);
-
+    const token = req.headers.authorization?.replace('Bearer ','');
+    console.log(token)
+    const userToken:any = await verify_token(token);
+    // const sessionStatus = await client.get(`status:${userToken.email}`);
+    // console.log(sessionStatus)
     const result = await Logout.logout_user(userToken);
-    res.status(200).json({ message: "Successfully logout", result });
-
+    if(result){
+      // if (sessionStatus === 'true') {
+      //   await client.set(`status:${userToken.email}`, 'false');
+      res.status(200).json({ message: "Successfully logout", result });
+    }
   } catch (err) {
     res.status(500).json({ message: "Server Error, Token Expired!" });
   }
 };
 
+//<---------------------------------------------New Token--------------------------------------------------->
+
 export const NewTokens= async(req: Request, res: Response)=>{
   try{
-    const refresh_token=req.body;
+    const refresh_token = req.headers.authorization?.replace('Bearer ','');
     if (!refresh_token) {
       return res.status(401).json({ message: "Bad Request, JWT expired!" });
     }
@@ -215,3 +191,34 @@ export const NewTokens= async(req: Request, res: Response)=>{
     res.status(500).json({ message: "An error occurred" });
   }
 }
+    //<----------------------------- VERIFY OTP with MOBILE NO------------------------------------------------------>
+    
+    // export const verifyOTPController = async (req: Request, res: Response) => {
+    
+    //     try {
+    //       const { error } = otpVerificationSchema.validate(req.body);
+    
+    //       const userId=req.body.email;
+    
+    //       if (error) {
+    //         return res.status(RESPONSE_CODES.BADREQUEST).json({ message: 'Invalid data', error: error.details });
+    //       }
+    
+    //       const { email,mobileno, otp } = req.body;
+    
+    //       const isValidOTP = await verifyOTP(otp, mobileno,email);
+    
+    //       if (!isValidOTP) {
+    //         return res.status(401).json({ message: 'Invalid OTP' });
+    //       }
+    //       // await setUserLoginStatus(userId, true);
+    //       const jwtToken = generateJWTToken(userId);
+    
+    // await redisClient.set(`session:${}`, 'true');
+    
+    //       res.status(200).json({ message: 'Successfully login' ,token: jwtToken});
+    //     } catch (error) {
+      //       console.error(error);
+      //       res.status(500).json({ message: 'An error occurred' });
+      //     }
+      //   };

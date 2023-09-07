@@ -1,10 +1,12 @@
 import { BookingModel } from "../../models/BookingModel/booking.schema";
 
-export const bookingdetails = async (userId: any) => {
+export const bookingdetails = async (user_Id: any) => {
   try {
-    const bookingServices = await BookingModel.findOne({ user_id: userId });
+    console.log(user_Id)
+    const bookingServices = await BookingModel.find({ userId: user_Id.userId });
+    console.log(bookingServices)
     return bookingServices;
   } catch (error) {
-    throw new Error("Error fetching salon services");
+    throw new Error("Error fetching services");
   }
 };

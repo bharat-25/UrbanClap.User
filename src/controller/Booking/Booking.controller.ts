@@ -1,38 +1,62 @@
 import { Request, Response } from "express";
-import { BookingModel } from "../../models/BookingModel/booking.schema";
 import { newbooking } from "../../services/Booking/newbooking.service";
 import { bookingdetails } from "../../services/Booking/allbooking.service";
 import { userbookingdetailbyID } from "../../services/Booking/userbookingDetails.service";
 import { userbookingdelete } from "../../services/Booking/deletebooking.service";
-import { UserData } from "../../models/user.register.schema";
 import {
   RESPONSE_MESSAGES,
   RESPONSE_CODES,
-} from '../../responses/services.responses';
-const  validationResult  = require('express-validator');
+} from "../../responses/services.responses";
+import { logger } from "../../middleware/logger.validate";
+import { verify_token, verifytoken } from "../../utils/decodeToken";
+const validationResult = require("express-validator");
 
+/**
+ *
+ * @param req new booking Data
+ * @param res Booking Status
+ */
 // Create a new booking
 export const newbookingservice = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    console.log(token);
+    const decode: any = await verifytoken(token);
+    console.log(decode);
+    const data = req.body;
+    if (req.body.userId == decode.userId) {
+      const book = await newbooking(data);
+      
+      res.status(RESPONSE_CODES.CREATED).json({ message: RESPONSE_MESSAGES.BOOKING, book });
+    }
+  } catch (error) {
+    res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
+  }
+};
 
-    try {
-        const data=req.body;
-        const book= await newbooking(data)
-    
-        res.status(RESPONSE_CODES.CREATED).json({ message: RESPONSE_MESSAGES.CREADTED,book });
-      } catch (error) {
-        console.error(error);
-        res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: RESPONSE_CODES.INTERNAL_SERVER_ERROR});
-      }
-}
+/**
+ *
+ * @param req
+ * @param res
+ */
 
 //Get all Booking services by user
 export const Getallbookings = async (req: Request, res: Response) => {
   try {
-    const userId = req.user;
-    const bookings = await bookingdetails(userId);
-    res.status(RESPONSE_CODES.CREATED).json({ message:RESPONSE_MESSAGES.BOOKING, bookings });
+    const userId = req.body;
+    const token = req.headers.authorization?.replace("Bearer ", "");
+
+    const decode: any = await verifytoken(token);
+    console.log(decode);
+    const data = req.body;
+    if (req.body.userId == decode.userId) {
+      console.log("TRUE");
+      const bookings = await bookingdetails(userId);
+      res.status(RESPONSE_CODES.SUCCESS).json({ message: RESPONSE_MESSAGES.BOOKING_FOUND, bookings });
+    } else {
+      res.status(RESPONSE_CODES.NOTFOUND).json({ message: RESPONSE_MESSAGES.NOT_FOUND });
+    }
   } catch (error) {
-    console.error(error);
     res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
@@ -40,18 +64,19 @@ export const Getallbookings = async (req: Request, res: Response) => {
 // Get a specific booking by ID
 export const getbookId = async (req: Request, res: Response) => {
   try {
-    // const  userId  = req.user;
-    // const startDate  = req.query.startDate||2022-01-01;
-    // const endDate  = req.query.endDate||2023-12-31;
 
-    const {userId,startDate, endDate}=req.body
-    const booking = await userbookingdetailbyID(userId, startDate, endDate);
-    if (!booking) {
-      return res.status(RESPONSE_CODES.NOTFOUND).json({ message: RESPONSE_MESSAGES.BOOKING_NOT_FOUND });
+    const { userId, startDate, endDate } = req.body;
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    console.log(token);
+    const decode: any = await verifytoken(token);
+    console.log(decode);
+    const data = req.body;
+    if (req.body.userId == decode.userId) {
+      const booking = await userbookingdetailbyID(userId, startDate, endDate);
+      return res.status(RESPONSE_CODES.SUCCESS).json({ message: RESPONSE_MESSAGES.BOOKING_FOUND, booking });
     }
-    res.status(RESPONSE_CODES.SUCCESS).json({message:RESPONSE_MESSAGES.BOOKING_FOUND});
+    res.status(RESPONSE_CODES.NOTFOUND).json({ message: RESPONSE_MESSAGES.BOOKING_NOT_FOUND });
   } catch (error) {
-    console.error(error);
     res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
@@ -60,21 +85,18 @@ export const getbookId = async (req: Request, res: Response) => {
 export const deletebooking = async (req: Request, res: Response) => {
   try {
     const { bookingId, userId } = req.body;
-  
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    console.log(token);
+    const decode: any = await verifytoken(token);
+    console.log(decode);
+    const data = req.body;
+    if (req.body.userId == decode.userId) {
+      const booking: any = await userbookingdelete(bookingId);
+      res.status(RESPONSE_CODES.SUCCESS).json({ message: "Booking deleted successfully" });
+    } else {
+      res.status(RESPONSE_CODES.BADREQUEST).json({ message: RESPONSE_MESSAGES.BOOKING_NOT_FOUND });
     }
-
-    console.log('ILOVEINDIA',req.body);
-    
-    const booking = await userbookingdelete( bookingId );
-
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-    res.json({ message: "Booking deleted successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "An error occurred" });
+    res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };

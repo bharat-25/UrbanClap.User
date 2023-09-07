@@ -40,6 +40,9 @@ export const otpVerificationValidatrion = Joi.object({
 export const verifyTokenSchema = Joi.object({
   token: Joi.string().required(),
 });
+export const logout_Schema = Joi.object({
+  userId: Joi.string().required(),
+});
 
 
 const validatedata = (schema: ObjectSchema) => {
@@ -56,3 +59,5 @@ export const registerUserMiddleware = validatedata(registerValidation);
 export const loginUserMiddleware = validatedata(loginValidation);
 export const OTPValidationMiddleware = validatedata(otpVerificationValidatrion);
 export const VerifyAccessToken = validatedata(verifyTokenSchema);
+export const logout_schema = validatedata(logout_Schema);
+

@@ -1,3 +1,4 @@
+import { CartValidation} from './../middleware/booking.validation';
 import express from 'express';
 import { body } from 'express-validator';
 
@@ -8,11 +9,11 @@ import { BookingValidation, deleteBookingValidation } from '../middleware/bookin
 
 const bookingRoute = express.Router();
 bookingRoute.route('/').get();
-bookingRoute.route('/bookingservice').post(BookingValidation,checkUserSession,newbookingservice);
-bookingRoute.route('/getallbookings').get(Getallbookings);
-bookingRoute.route('/getbookId').get(checkUserSession,getbookId);
-bookingRoute.route('/deletebooking').delete(deleteBookingValidation,checkUserSessionfordelete,deletebooking);
-// bookingRoute.route('/user/cart').post(checkUserSession,addToCart);
-// bookingRoute.route('/user/removedcart/:serviceId').delete(checkUserSession,removeFromCart);
+bookingRoute.route('/bookingservice').post(BookingValidation,newbookingservice);
+bookingRoute.route('/getallbookings').post(checkUserSession,Getallbookings);
+bookingRoute.route('/getbookId').post(checkUserSession,getbookId);
+bookingRoute.route('/deletebooking').delete(deleteBookingValidation,checkUserSession,deletebooking);
+bookingRoute.route('/user/cart').post(CartValidation,checkUserSession,addToCart);
+bookingRoute.route('/user/removedcart').delete(CartValidation,checkUserSession,removeFromCart);
 
 export default bookingRoute;

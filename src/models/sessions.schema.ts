@@ -1,15 +1,15 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 
-interface Session {
-    user_id: string;
+interface Session extends Document{
+    user_id:object;
     status:boolean;
   }
 
 const SessionSchema = new mongoose.Schema({
     user_id:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Register",
+        type: Schema.Types.ObjectId,
+        ref: 'UserData',
         required: true,
     },
     status:{
@@ -17,7 +17,7 @@ const SessionSchema = new mongoose.Schema({
         required:true,
         default: false
     }
-});
+},{timestamps:true});
 
 const Session = mongoose.model('Session',SessionSchema);
 

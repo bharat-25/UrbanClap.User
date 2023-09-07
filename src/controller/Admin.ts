@@ -1,42 +1,17 @@
 import { NextFunction, Request, Response } from "express";
-import { verify_token } from "../middleware/user.verifytoken";
-import Jwt  from "jsonwebtoken";
-// export const checkadmin = async (req: Request, res: Response) => {
-//   try {
-//     const token = req.headers.authorization;
+import {verifytoken,} from "../utils/decodeToken";
 
-//     const userToken: any = await verify_token(token);
+export const checkadmin = async (req: any,res: Response) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    const userToken: any = await verifytoken(token);
+    const checkAdmin = userToken.isAdmin;
 
-//     const checkAdmin = userToken.isAdmin;
-
-//     console.log(checkAdmin);
-    
-//     if (!checkAdmin) {
-//       return res.status(403).json({ error: "Access Denied" });
-//     }
-//     res.status(200).json("Authorized User: Admin");
-//   } catch (err) {
-//     res.status(403).json({ error: "Unauthorized" });
-//   }
-// };
-
-
-export const checkadmin = async (req: any, res: { send: (arg0: any) => void; },next:NextFunction) => {
-    try {
-        const token = req.headers.authorization;
-
-      
-        console.log(":,,,,,,,,,,,,,,,,,,,,,,,,,",token)
-      const userToken: any = await verify_token(token);
-      const qqq:any=Jwt.decode(userToken)
-      const checkAdmin = qqq.isAdmin;
-  
-      if (!checkAdmin) {
-        return res.send( "Access Denied" );
-      }
-      next();
-      res.send("Authorized User: Admin");
-    } catch (err) {
-      res.send(  "Unauthorized" );
+    if (checkAdmin == true) {
+      return res.status(200).json({ message: "Authorized User: Admin Access " });
     }
-  };
+    return res.status(404).json({ message: "Access Denied!, You are not Admin" });
+  } catch (err) {
+    res.send("Unauthorized");
+  }
+};

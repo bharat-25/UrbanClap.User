@@ -8,14 +8,7 @@ export const registerUsers = async (userData:any) => {
         const { name, email, password, mobileno,isAdmin, addresses } = userData;
         const encryptPass = await bcrypt.hash(password, 5);
       
-        const registerdata = new UserData({
-            name,
-            email,
-            password: encryptPass,
-            mobileno,
-            isAdmin,
-            addresses,
-        });
+        const registerdata = new UserData({name,email,password: encryptPass,mobileno,isAdmin,addresses, });
         await registerdata.save();
         return registerdata;
     }

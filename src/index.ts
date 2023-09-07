@@ -1,9 +1,12 @@
 import express from "express";
-import { dbConnect } from "./src/database/conn";
+import { dbConnect } from "./database/conn";
 import dotenv from "dotenv";
-import userRoute from "./src/routes/user.route";
-import bookingRoute from "./src/routes/booking.route";
-import redis, { redFun } from "./src/utils/redis";
+import userRoute from "./routes/user.route";
+import bookingRoute from "./routes/booking.route";
+import { Log } from "logging-colorify-v2";
+import redis, { redFun } from "./utils/redis";
+const swaggerUi = require("swagger-ui-express");
+
 dotenv.config();
 
 const app = express();
@@ -14,8 +17,7 @@ app.use("/user", userRoute);
 app.use("/booking", bookingRoute);
 redFun();
 
-const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = require("./newSwaggar.json");
+const swaggerDocument = require("./swagger_output.json");
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 

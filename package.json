@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "tsc && node ./dist/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -15,6 +16,7 @@
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^20.5.0",
     "@types/nodemailer": "^6.4.9",
+    "@types/uuid": "^9.0.3",
     "typescript": "^5.1.6"
   },
   "dependencies": {
@@ -25,12 +27,15 @@
     "joi": "^17.9.2",
     "joi-country-extension": "^1.2.0",
     "joi-phone-number": "^5.1.1",
+    "logging-colorify-v2": "^1.0.0",
     "mongoose": "^7.4.3",
     "nodemailer": "^6.9.4",
     "redis": "^4.6.7",
     "serverless-auto-swagger": "^2.12.0",
     "swagger-autogen": "^2.23.5",
     "swagger-ui-express": "^5.0.0",
-    "twilio": "^4.15.0"
+    "twilio": "^4.15.0",
+    "uuid": "^9.0.0",
+    "winston": "^3.10.0"
   }
 }

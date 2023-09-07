@@ -1,0 +1,505 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "Urban Clap",
+      "description": ""
+    },
+    "host": "localhost:5000",
+    "tags": [
+        {
+          "name": "User",
+          "description": "Endpoints related to user registration"
+        },{
+            "name": "Booking Services",
+            "description": "Endpoints related to Booking Services"
+          }
+      ],
+      "schemes": ["http"], 
+      "securityDefinitions": {   
+         "bearerAuth": {      
+          "type": "apiKey",      
+          "name": "Authorization",      
+          "in": "header"    
+          }
+        },
+    "paths": {
+      
+      "/user": {
+        "get": {
+          "description": "",
+          "responses": {
+            "default": {
+              "description": "GET"
+            }
+          }
+        }
+      },
+      "/user/signup": {
+        "post": {
+            "tags": ["User"],
+          "summary": "User Signup",
+          "description": "For Booking, You need to signup",
+          "parameters": [
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                  "properties": {
+                    "name": {
+                      "example": "John Doe"
+                    },
+                    "email": {
+                      "example": "abc@gmail.com"
+                    },
+                    "password": {
+                      "example": "password123"
+                    },
+                    "mobileno": {
+                      "example": "1234567890"
+                    },
+                    "isAdmin": {
+                      "example": true
+                    },
+                    "addresses": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "addressType": {
+                            "example": "home"
+                          },
+                          "street": {
+                            "example": "123 Main St"
+                          },
+                          "city": {
+                            "example": "New York"
+                          },
+                          "state": {
+                            "example": "NY"
+                          },
+                          "postalCode": {
+                            "example": "10001"
+                          }
+                        },
+                        "required": ["addressType"]
+                      }
+                    }
+                  },
+                  "required": ["name", "email", "password", "mobileno","addresses"]
+                              
+                }
+              }
+  
+          ],
+          "responses": {
+            "201": {
+              "description": "Created"
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "409": {
+              "description": "Conflict"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      "/user/login": {
+        "post": {
+            "tags": ["User"],
+            "summary": "User Login",
+
+          "description": "User Login",
+          "parameters": [
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "example": "abc@gmail.com"
+                  },
+                  "password": {
+                    "example": "abc23"
+                  }
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },"/user/login/verifyotp": {
+        "post": {
+            "tags": ["User"],
+            "summary": "User Verify Login OTP",
+
+          "description": "User Verify Login OTP",
+          "parameters": [
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "example": "abc@gmail.com"
+                  },
+                  "otp": {
+                    "example": "123456"
+                  }
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      "/user/logout": {
+        "post": {
+            "tags": ["User"],
+            "summary": "User logout",
+            "security": [{ "bearerAuth": [] }],
+          "description": "User logout",
+          "parameters": [
+            
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "example": "asdfghjklqwertyuio"
+                  }
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      "/user/CheckAdmin": {
+        "get": {
+            "tags": ["User"],
+            "summary": "User Check :isAdmin or Not",
+            "security": [{ "bearerAuth": [] }],
+          "description": "User Check :isAdmin or Not",
+          "responses": {
+            "200": {
+              "description": "OK"
+            },
+            "400": {
+              "description": "Bad Request"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      "/user/GenerateNewTokens": {
+          
+          "post": {
+            "tags": ["User"],
+          "description": "Generate new token",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "example": "asdfghjklqwertyuio"
+                  }
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      
+      "/booking/bookingservice": {
+        
+        "post": {
+            "tags": ["Booking Services"],
+            "summary": "New Booking Services",
+            "description": "New Booking Services",
+            "security": [{ "bearerAuth": [] }],
+
+          "parameters": [
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "example": "any"
+                  }, 
+                  "serviceId":{
+                    "example":"any"
+                  },
+                  "slotdate":{
+                    "example": "2023-09-10"
+                  },
+                  "slotTime":{
+                      "example": "3:00 PM"
+                }
+              }
+            }
+            }],
+          "responses": {
+            "401": {
+              "description": "Unauthorized"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      "/booking/getallbookings": {
+        "post": {
+            "tags": ["Booking Services"],
+            "summary": "Get all user booking",
+            "description": "Get all user booking",
+            "security": [{ "bearerAuth": [] }],
+
+            "parameters": [
+          
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "example": "any"
+                  }
+              }
+            }
+            }],
+            "responses": {
+              "200": {
+                "description": "Success"
+              },
+              "500": {
+                "description": "Internal Server Error"
+              }
+            }
+        }
+      },
+      "/booking/getbookId": {
+        "post": {
+          "tags": ["Booking Services"],
+          "summary": "Get Specific Booking Service by ID",
+          "description": "Get Specific Booking Service by ID",
+          "security": [{ "bearerAuth": [] }],
+
+          "parameters": [
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "example": "any"
+                  },
+                  "startDate":{
+                    "example":"2023-09-01"
+                  },
+                  "endDate":{
+                    "example":"2023-09-11"
+                  }
+              }
+            }
+            }],
+
+          "responses": {
+            "401": {
+              "description": "Unauthorized"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      "/booking/deletebooking": {
+        "delete": {"summary": "Get Booking Service by ID",
+        "description": "Get Booking Service by ID",
+            "tags": ["Booking Services"],
+            "security": [{ "bearerAuth": [] }],
+
+          "parameters": [
+            
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "example": "any"
+                  },
+                  "bookingId": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "404": {
+              "description": "Not Found"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      "/booking/user/cart": {
+        "post": {
+          "summary": "Add Service in cart",
+        "description": "Add Service in cart",
+            "tags": ["Booking Services"],
+            "security": [{ "bearerAuth": [] }],
+
+          "parameters": [
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "example": "any"
+                  },
+                  "packageId": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "Created"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      },
+      "/booking/user/removedcart": {
+        "delete": {
+          "summary": "remove Service in cart",
+        "description": "remove Service from cart",
+            "tags": ["Booking Services"],
+            "security": [{ "bearerAuth": [] }],
+
+          "parameters": [
+            {
+              "name": "body",
+              "in": "body",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "example": "any"
+                  },"packageId": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "500": {
+              "description": "Internal Server Error"
+            }
+          }
+        }
+      }
+    }
+  }

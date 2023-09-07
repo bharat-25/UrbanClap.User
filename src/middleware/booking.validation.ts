@@ -3,16 +3,22 @@ import { Request, Response, NextFunction } from "express";
 import Joi, { ObjectSchema } from "joi";
 
 const BookingValid = Joi.object({
-  serviceId: Joi.string(),
   userId: Joi.string(),
-  date: Joi.date(),
-  time: Joi.string(),
+  packageId: Joi.string(),
+  slotdate: Joi.date(),
+  slotTime: Joi.string(),
 });
 
 export const deleteValidatrion = Joi.object({
   bookingId: Joi.string().required(),
   userId: Joi.string().required(),
 });
+
+export const cartValidatrion = Joi.object({
+  userId: Joi.string().required(),
+  packageId: Joi.string().required(),
+});
+
 const validatedata = (schema: ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const { error, value } = schema.validate(req.body);
@@ -25,3 +31,4 @@ const validatedata = (schema: ObjectSchema) => {
 };
 export const BookingValidation = validatedata(BookingValid);
 export const deleteBookingValidation = validatedata(deleteValidatrion);
+export const CartValidation = validatedata(cartValidatrion);
