@@ -6,7 +6,9 @@ export const userbookingdelete = async ( bookingId:any ) => {
     console.log(bookingId)
     const del=await BookingModel.findOneAndDelete({_id: bookingId});
     if(del)
-    {return };
+    {
+      return 
+    };
   } catch (error) {
     throw new Error("Error deleting services");
   }

@@ -2,12 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RESPONSE_MESSAGES = exports.RESPONSE_CODES = void 0;
 exports.RESPONSE_CODES = {
-    CREATED: 201,
     SUCCESS: 200,
-    CONFLICT: 409,
+    CREATED: 201,
     BADREQUEST: 400,
-    NOTFOUND: 404,
     UNAUTHORIZED: 401,
+    NOTFOUND: 404,
+    CONFLICT: 409,
     INTERNAL_SERVER_ERROR: 500,
 };
 exports.RESPONSE_MESSAGES = {

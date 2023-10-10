@@ -7,8 +7,7 @@ import {
   RESPONSE_MESSAGES,
   RESPONSE_CODES,
 } from "../../responses/services.responses";
-import { logger } from "../../middleware/logger.validate";
-import { verify_token, verifytoken } from "../../utils/decodeToken";
+import { verifytoken } from "../../utils/decodeToken";
 const validationResult = require("express-validator");
 
 /**
@@ -20,9 +19,7 @@ const validationResult = require("express-validator");
 export const newbookingservice = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.replace("Bearer ", "");
-    console.log(token);
     const decode: any = await verifytoken(token);
-    console.log(decode);
     const data = req.body;
     if (req.body.userId == decode.userId) {
       const book = await newbooking(data);
@@ -61,7 +58,15 @@ export const Getallbookings = async (req: Request, res: Response) => {
   }
 };
 
+
 // Get a specific booking by ID
+/**
+ * 
+ * @param req userId,startDate,endDate
+ * @param res all booking b/w these dates
+ * @returns 
+ */
+
 export const getbookId = async (req: Request, res: Response) => {
   try {
 
@@ -82,9 +87,15 @@ export const getbookId = async (req: Request, res: Response) => {
 };
 
 // Delete a booking
+/**
+ * 
+ * @param req bookingId
+ * @param res booking delete
+ */
+
 export const deletebooking = async (req: Request, res: Response) => {
   try {
-    const { bookingId, userId } = req.body;
+    const { bookingId} = req.body;
     const token = req.headers.authorization?.replace("Bearer ", "");
     console.log(token);
     const decode: any = await verifytoken(token);

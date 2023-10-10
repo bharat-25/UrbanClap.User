@@ -3,7 +3,6 @@ import { dbConnect } from "./database/conn";
 import dotenv from "dotenv";
 import userRoute from "./routes/user.route";
 import bookingRoute from "./routes/booking.route";
-import { Log } from "logging-colorify-v2";
 import redis, { redFun } from "./utils/redis";
 const swaggerUi = require("swagger-ui-express");
 

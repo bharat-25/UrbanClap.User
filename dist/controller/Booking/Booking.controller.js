@@ -17,9 +17,7 @@ const validationResult = require("express-validator");
 const newbookingservice = async (req, res) => {
     try {
         const token = req.headers.authorization?.replace("Bearer ", "");
-        console.log(token);
         const decode = await (0, decodeToken_1.verifytoken)(token);
-        console.log(decode);
         const data = req.body;
         if (req.body.userId == decode.userId) {
             const book = await (0, newbooking_service_1.newbooking)(data);
@@ -59,6 +57,12 @@ const Getallbookings = async (req, res) => {
 };
 exports.Getallbookings = Getallbookings;
 // Get a specific booking by ID
+/**
+ *
+ * @param req userId,startDate,endDate
+ * @param res all booking b/w these dates
+ * @returns
+ */
 const getbookId = async (req, res) => {
     try {
         const { userId, startDate, endDate } = req.body;
@@ -79,9 +83,14 @@ const getbookId = async (req, res) => {
 };
 exports.getbookId = getbookId;
 // Delete a booking
+/**
+ *
+ * @param req bookingId
+ * @param res booking delete
+ */
 const deletebooking = async (req, res) => {
     try {
-        const { bookingId, userId } = req.body;
+        const { bookingId } = req.body;
         const token = req.headers.authorization?.replace("Bearer ", "");
         console.log(token);
         const decode = await (0, decodeToken_1.verifytoken)(token);

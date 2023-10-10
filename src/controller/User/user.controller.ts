@@ -14,14 +14,12 @@ import { SignAccessToken, SignRefreshToken } from "../../utils/generateJWT";
 import {RESPONSE_MESSAGES,RESPONSE_CODES,} from '../../responses/services.responses';
 import { v4 as uuidv4 } from 'uuid';
 import { tokenModel } from "../../models/token.Model";
+import { logger } from "../../middleware/logger.validate";
 
 //<----------------------------------------- SIGNUP ------------------------------------------------->
 
 export const registerControl = async (req: Request, res: Response) => {
   try {
-    if (req.body == undefined) {
-      res.status(RESPONSE_CODES.BADREQUEST).json({ Message: RESPONSE_MESSAGES.BAD_REQUEST });
-    } else {
       let result = await isUserExist(req);
       if (!result) {
         const userData = req.body;
@@ -32,14 +30,12 @@ export const registerControl = async (req: Request, res: Response) => {
       } else {
         res.status(RESPONSE_CODES.CONFLICT).json({ message: RESPONSE_MESSAGES.ALREADY_EXIST });
       }
-    }
   } catch (error) {
     res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: RESPONSE_MESSAGES.INTERNAL_SERVER_ERROR });
   }
 };
 const isUserExist = async (req: Request) => {
   try {
-    // data=await Register.findOne({mobileno:req.body.mobileno});
     const data = await UserData.findOne({ email: req.body.email });
     return data;
   } catch {
@@ -52,20 +48,14 @@ const isUserExist = async (req: Request) => {
 export const Login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    const { error } = loginValidation.validate(req.body);
 
-    if (error) {
-      return res.status(RESPONSE_CODES.BADREQUEST).json({ message: "Invalid data" });
-    }
     const user: any = await UserData.findOne({ email: req.body.email});
-    console.log(user)
 
     if (!user) {
       return res.status(RESPONSE_CODES.NOTFOUND).json({ error: RESPONSE_MESSAGES.NOT_FOUND });
     }
 
     const pass = await bcrypt.compare(password.toString(), user?.password);
-    console.log(pass);
 
     if (!pass) {
       return res.status(RESPONSE_CODES.UNAUTHORIZED).json({ error: "Wrong Password" });
@@ -74,10 +64,11 @@ export const Login = async (req: Request, res: Response) => {
     const isSession: any = await Session.findOne({ user_id: user._id });
 
     if (isSession) {
-      if (isSession.status) {
+      if (!isSession.status) {
         return res.status(RESPONSE_CODES.BADREQUEST).json({ message: "User is already logged in" });
       }
     }
+    logger.info(isSession)
     const otp = await login(email);
 
     console.log(email, otp);
@@ -88,17 +79,7 @@ export const Login = async (req: Request, res: Response) => {
 
     const sess = await session.maintainSession(user);
 
-    res.status(200).json({ message: "OTP sent successfully and OTP valid only for 5 min" });
-    
-    // -----------CODE FOR SEND OTP TO MOBILE NO-------------
-
-    // const otp = await login(mobileno);
-
-    // await storeOTPInRedis(mobileno, otp);
-    // // send OTP to client's phone number using Twilio API
-    // sendOTPToMobile(mobileno, otp);
-
-    //--------CODE FOR SEND OTP TO EMAIL-----
+    res.status(RESPONSE_CODES.SUCCESS).json({ message: "OTP sent successfully and OTP valid only for 5 min" })
   } 
   catch (error) {
     console.error(error);
@@ -111,13 +92,13 @@ export const Login = async (req: Request, res: Response) => {
   
 export const verifyOTPController = async (req: Request, res: Response) => {
     try {
-    const { error } = otpVerificationValidatrion.validate(req.body);
+    // const { error } = otpVerificationValidatrion.validate(req.body);
 
     const userId = req.body.email;
     
-    if (error) {
-      return res.status(RESPONSE_CODES.BADREQUEST).json({ message: "Invalid data", error: error.details });
-    }
+    // if (error) {
+    //   return res.status(RESPONSE_CODES.BADREQUEST).json({ message: "Invalid data", error: error.details });
+    // }
     const user_data: any = await UserData.findOne({ email: userId });
     console.log(user_data)
     
@@ -128,7 +109,6 @@ export const verifyOTPController = async (req: Request, res: Response) => {
     if (!isValidOTP) {
       return res.status(RESPONSE_CODES.UNAUTHORIZED).json({ message: RESPONSE_MESSAGES.UNAUTHORIZED });
     }
-    // const sess = await session.maintainSession(userId);
     client.set(`status:${userId}`, 'true');
 
     const isSession: any = await Session.findOne({ user_id: user_data._id });
@@ -158,13 +138,9 @@ export const logoutcontrol = async (req: Request, res: Response) => {
     const token = req.headers.authorization?.replace('Bearer ','');
     console.log(token)
     const userToken:any = await verify_token(token);
-    // const sessionStatus = await client.get(`status:${userToken.email}`);
-    // console.log(sessionStatus)
     const result = await Logout.logout_user(userToken);
     if(result){
-      // if (sessionStatus === 'true') {
-      //   await client.set(`status:${userToken.email}`, 'false');
-      res.status(200).json({ message: "Successfully logout", result });
+      res.status(RESPONSE_CODES.SUCCESS).json({ message: "Successfully logout", result });
     }
   } catch (err) {
     res.status(500).json({ message: "Server Error, Token Expired!" });
@@ -183,12 +159,13 @@ export const NewTokens= async(req: Request, res: Response)=>{
     const isadmin:any= await verify_refresh_token(refresh_token)
 
     const AccessToken = SignAccessToken(userId, isadmin);
-    const RefreshToken = SignRefreshToken(userId, isadmin);
+    // const RefreshToken = SignRefreshToken(userId, isadmin);
 
-    res.status(200).json({ Access_token: AccessToken ,Refresh_token:RefreshToken});
+    res.status(RESPONSE_CODES.SUCCESS).json({ Access_token: AccessToken });
+    // res.status(200).json({ Access_token: AccessToken ,Refresh_token:RefreshToken});
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "An error occurred" });
+    res.status(RESPONSE_CODES.INTERNAL_SERVER_ERROR).json({ message: "An error occurred" });
   }
 }
     //<----------------------------- VERIFY OTP with MOBILE NO------------------------------------------------------>
